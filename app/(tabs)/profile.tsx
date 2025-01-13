@@ -1,44 +1,27 @@
-import { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, Button } from 'react-native';
+import { StyleSheet, Text, View, FlatList, TouchableOpacity, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function ProfileScreen() {
-  const [username, setUsername] = useState('');
   const router = useRouter();
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        router.push('/login');
-        return;
-      }
+  
 
-      try {
-        const response = await fetch('http://127.0.0.1:5000/profile', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setUsername(data.username);
-        } else {
-          router.push('/login');
-        }
-      } catch (error) {
-        console.error('Error fetching profile:', error);
-        router.push('/login');
-      }
-    };
-
-    fetchProfile();
-  }, []);
+  const handleLogout = async () => {
+    await AsyncStorage.removeItem('token');
+    Alert.alert('Logged Out', 'You have been logged out.');
+    router.push('/login');
+  };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>User Profile</Text>
-      <Text style={styles.info}>Username: {username}</Text>
+      <Text style={styles.title}>Profile</Text>
+      <Text style={styles.subtitle}>Welcome to your car rental dashboard!</Text>
+
+      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+        <Text style={styles.logoutButtonText}>Log Out</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -48,13 +31,46 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     justifyContent: 'center',
+    backgroundColor: '#1e1e2e',
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
-    marginBottom: 20,
+    color: '#fff',
+    marginBottom: 10,
+    textAlign: 'center',
   },
-  info: {
-    fontSize: 18,
+  subtitle: {
+    fontSize: 16,
+    color: '#b0b0c3',
+    marginBottom: 30,
+    textAlign: 'center',
+  },
+  placeholderContainer: {
+    marginTop: 30,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 15,
+    textAlign: 'center',
+  },
+  placeholderText: {
+    fontSize: 16,
+    color: '#b0b0c3',
+    marginBottom: 10,
+  },
+  logoutButton: {
+    marginTop: 30,
+    paddingVertical: 15,
+    backgroundColor: '#4e4ecb',
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  logoutButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
