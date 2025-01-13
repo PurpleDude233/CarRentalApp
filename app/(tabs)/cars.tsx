@@ -11,41 +11,72 @@ interface Car {
   pricePerDay: string;
 }
 
+
+
 export default function CarsScreen() {
   const [expandedCarId, setExpandedCarId] = useState<string | null>(null);
   const [rentalOption, setRentalOption] = useState<string | null>(null);
   const [address, setAddress] = useState('');
   const [showRentalOptions, setShowRentalOptions] = useState(false);
   const [cars, setCars] = useState<Car[]>([]);
-
+  const carsSub: Car[] = [
+    {
+      id: '1',
+      brand: 'Toyota',
+      model: 'Corolla',
+      year: 2020,
+      fuel: 'Gasoline',
+      pricePerDay: '$40',
+    },
+    {
+      id: '2',
+      brand: 'Honda',
+      model: 'Civic',
+      year: 2019,
+      fuel: 'Gasoline',
+      pricePerDay: '$35',
+    },
+    {
+      id: '3',
+      brand: 'Ford',
+      model: 'Focus',
+      year: 2018,
+      fuel: 'LPG',
+      pricePerDay: '$30',
+    },
+  ];
   useEffect(() => {
     const fetchCars = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
         if (!token) {
           console.error('No token found');
+          setCars(carsSub); 
           return;
         }
-
+  
         const response = await fetch('http://127.0.0.1:5000/cars', {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
-
+  
         if (response.ok) {
           const data = await response.json();
           setCars(data);
         } else {
-          console.error('Failed to fetch cars');
+          console.error('Failed to fetch cars, using fallback data');
+          setCars(carsSub); 
         }
       } catch (error) {
         console.error('Error fetching cars:', error);
+        setCars(carsSub); 
       }
     };
-
+  
     fetchCars();
   }, []);
+  
 
   const toggleDetails = (id: string) => {
     setExpandedCarId(expandedCarId === id ? null : id);
@@ -56,12 +87,44 @@ export default function CarsScreen() {
     setShowRentalOptions(true);
   };
 
-  const confirmRental = () => {
+  const confirmRental = async (car: Car) => {
     if (rentalOption === 'delivery' && address.trim() === '') {
       setRentalOption('delivery');
       setShowRentalOptions(false);
       return;
     }
+
+    try {
+      const token = await AsyncStorage.getItem('token');
+      if (!token) {
+        console.error('No token found');
+        return;
+      }
+
+      const rentalDetails = {
+        carId: car.id,
+        rentalOption,
+        address: rentalOption === 'delivery' ? address : null,
+      };
+
+      const response = await fetch('http://127.0.0.1:5000/rentals', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(rentalDetails),
+      });
+
+      if (response.ok) {
+        console.log('Rental confirmed successfully');
+      } else {
+        console.error('Failed to confirm rental');
+      }
+    } catch (error) {
+      console.error('Error confirming rental:', error);
+    }
+
     setRentalOption(null);
     setAddress('');
     setShowRentalOptions(false);
@@ -115,7 +178,7 @@ export default function CarsScreen() {
               onChangeText={setAddress}
             />
           )}
-          <TouchableOpacity style={styles.confirmButton} onPress={confirmRental}>
+          <TouchableOpacity style={styles.confirmButton} onPress={() => confirmRental(cars.find(car => car.id === expandedCarId)!)}>
             <Text style={styles.confirmButtonText}>Confirm Rental</Text>
           </TouchableOpacity>
         </View>
