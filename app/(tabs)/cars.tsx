@@ -1,5 +1,6 @@
 import { StyleSheet, Text, View, FlatList, TouchableOpacity, TextInput } from 'react-native';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface Car {
   id: string;
@@ -15,33 +16,36 @@ export default function CarsScreen() {
   const [rentalOption, setRentalOption] = useState<string | null>(null);
   const [address, setAddress] = useState('');
   const [showRentalOptions, setShowRentalOptions] = useState(false);
+  const [cars, setCars] = useState<Car[]>([]);
 
-  const cars: Car[] = [
-    {
-      id: '1',
-      brand: 'Toyota',
-      model: 'Corolla',
-      year: 2020,
-      fuel: 'Gasoline',
-      pricePerDay: '$40',
-    },
-    {
-      id: '2',
-      brand: 'Honda',
-      model: 'Civic',
-      year: 2019,
-      fuel: 'Gasoline',
-      pricePerDay: '$35',
-    },
-    {
-      id: '3',
-      brand: 'Ford',
-      model: 'Focus',
-      year: 2018,
-      fuel: 'LPG',
-      pricePerDay: '$30',
-    },
-  ];
+  useEffect(() => {
+    const fetchCars = async () => {
+      try {
+        const token = await AsyncStorage.getItem('token');
+        if (!token) {
+          console.error('No token found');
+          return;
+        }
+
+        const response = await fetch('http://127.0.0.1:5000/cars', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setCars(data);
+        } else {
+          console.error('Failed to fetch cars');
+        }
+      } catch (error) {
+        console.error('Error fetching cars:', error);
+      }
+    };
+
+    fetchCars();
+  }, []);
 
   const toggleDetails = (id: string) => {
     setExpandedCarId(expandedCarId === id ? null : id);

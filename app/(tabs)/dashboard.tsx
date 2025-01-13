@@ -31,29 +31,16 @@ export default function DashboardScreen() {
           router.push('/login');
           return;
         }
-        const response = await fetch('http://127.0.0.1:5000/verify-token', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-  
-        if (response.ok) {
-          setIsLoggedIn(true);
-        } else {
-          Alert.alert('Unauthorized', 'Your session has expired. Please log in again.');
-          await AsyncStorage.removeItem('token');
-          router.push('/login');
-        }
+        setIsLoggedIn(true);
       } catch (error) {
         console.error('Error verifying login status:', error);
         Alert.alert('Error', 'An unexpected error occurred. Please log in again.');
         router.push('/login');
       }
     };
-  
+
     checkLoginStatus();
   }, []);
-  
 
   const addUser = async () => {
     const token = await AsyncStorage.getItem('token');

@@ -44,15 +44,7 @@ export default function TabLayout() {
           title: 'Dashboard',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="chart.bar.fill" color={color} />,
         }}
-        listeners={({ navigation }) => ({
-          tabPress: async (e) => {
-            const { isAdmin } = await checkRole();
-            if (!isAdmin) {
-              e.preventDefault();
-              Alert.alert('Access Denied', 'You need admin privileges to access the dashboard.');
-            }
-          },
-  })}
+      
 />
 
     </Tabs>

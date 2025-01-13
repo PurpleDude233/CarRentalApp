@@ -63,8 +63,8 @@ export default function ExploreScreen() {
           <TouchableOpacity
             style={styles.card}
             onPress={() => {
-              if (item.route) {
-                router.push(item.route);
+              if (item.route && ['/cars', '/dashboard', '/login'].includes(item.route)) {
+                router.push(item.route as any);
               } else if (item.externalLink) {
                 Linking.openURL(item.externalLink);
               } else if (item.placeholder) {
@@ -74,6 +74,7 @@ export default function ExploreScreen() {
             <Text style={styles.cardTitle}>{item.title}</Text>
             <Text style={styles.cardDescription}>{item.description}</Text>
           </TouchableOpacity>
+
         )}
       />
 
