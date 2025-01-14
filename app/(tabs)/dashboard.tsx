@@ -1,7 +1,5 @@
 import { StyleSheet, Text, View, FlatList, TouchableOpacity, Alert, TextInput } from 'react-native';
-import { useState, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useRouter } from 'expo-router';
+import { useState } from 'react';
 
 interface User {
   username: string;
@@ -17,52 +15,25 @@ interface Car {
 }
 
 export default function DashboardScreen() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [newUser, setNewUser] = useState<Partial<User>>({});
   const [newCar, setNewCar] = useState<Partial<Car>>({});
-  const router = useRouter();
-
-  useEffect(() => {
-    const checkLoginStatus = async () => {
-      try {
-        const token = await AsyncStorage.getItem('token');
-        if (!token) {
-          Alert.alert('Unauthorized', 'You must be logged in to access this page.');
-          router.push('/login');
-          return;
-        }
-        setIsLoggedIn(true);
-      } catch (error) {
-        console.error('Error verifying login status:', error);
-        Alert.alert('Error', 'An unexpected error occurred. Please log in again.');
-        router.push('/login');
-      }
-    };
-
-    checkLoginStatus();
-  }, []);
 
   const addUser = async () => {
-    const token = await AsyncStorage.getItem('token');
-    if (!token) {
-      Alert.alert('Unauthorized', 'You must be logged in to add a user.');
-      return;
-    }
-
     try {
       const response = await fetch('http://127.0.0.1:5000/users', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(newUser),
       });
 
       if (response.ok) {
+        console.log(`User added: ${newUser.username}`);
         Alert.alert('Success', 'User added successfully.');
         setNewUser({});
       } else {
+        console.error('Failed to add user.');
         Alert.alert('Error', 'Failed to add user.');
       }
     } catch (error) {
@@ -72,26 +43,21 @@ export default function DashboardScreen() {
   };
 
   const addCar = async () => {
-    const token = await AsyncStorage.getItem('token');
-    if (!token) {
-      Alert.alert('Unauthorized', 'You must be logged in to add a car.');
-      return;
-    }
-
     try {
       const response = await fetch('http://127.0.0.1:5000/cars', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(newCar),
       });
 
       if (response.ok) {
+        console.log(`Car added: ${newCar.brand} ${newCar.model}`);
         Alert.alert('Success', 'Car added successfully.');
         setNewCar({});
       } else {
+        console.error('Failed to add car.');
         Alert.alert('Error', 'Failed to add car.');
       }
     } catch (error) {
@@ -99,14 +65,6 @@ export default function DashboardScreen() {
       Alert.alert('Error', 'An error occurred while adding the car.');
     }
   };
-
-  if (!isLoggedIn) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.message}>Redirecting to login...</Text>
-      </View>
-    );
-  }
 
   return (
     <View style={styles.container}>
@@ -192,12 +150,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     marginBottom: 20,
     textAlign: 'center',
-  },
-  message: {
-    fontSize: 18,
-    color: '#b0b0c3',
-    textAlign: 'center',
-    marginTop: 20,
   },
   addUserContainer: {
     marginTop: 30,

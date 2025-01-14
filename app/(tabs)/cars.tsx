@@ -11,14 +11,13 @@ interface Car {
   pricePerDay: string;
 }
 
-
-
 export default function CarsScreen() {
   const [expandedCarId, setExpandedCarId] = useState<string | null>(null);
   const [rentalOption, setRentalOption] = useState<string | null>(null);
   const [address, setAddress] = useState('');
   const [showRentalOptions, setShowRentalOptions] = useState(false);
   const [cars, setCars] = useState<Car[]>([]);
+
   const carsSub: Car[] = [
     {
       id: '1',
@@ -45,38 +44,38 @@ export default function CarsScreen() {
       pricePerDay: '$30',
     },
   ];
+
   useEffect(() => {
     const fetchCars = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
         if (!token) {
           console.error('No token found');
-          setCars(carsSub); 
+          setCars(carsSub);
           return;
         }
-  
+
         const response = await fetch('http://127.0.0.1:5000/cars', {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
-  
+
         if (response.ok) {
           const data = await response.json();
           setCars(data);
         } else {
           console.error('Failed to fetch cars, using fallback data');
-          setCars(carsSub); 
+          setCars(carsSub);
         }
       } catch (error) {
         console.error('Error fetching cars:', error);
-        setCars(carsSub); 
+        setCars(carsSub);
       }
     };
-  
+
     fetchCars();
   }, []);
-  
 
   const toggleDetails = (id: string) => {
     setExpandedCarId(expandedCarId === id ? null : id);
@@ -89,8 +88,7 @@ export default function CarsScreen() {
 
   const confirmRental = async (car: Car) => {
     if (rentalOption === 'delivery' && address.trim() === '') {
-      setRentalOption('delivery');
-      setShowRentalOptions(false);
+      console.error('Delivery address is required');
       return;
     }
 
@@ -103,6 +101,8 @@ export default function CarsScreen() {
 
       const rentalDetails = {
         carId: car.id,
+        brand: car.brand,
+        model: car.model,
         rentalOption,
         address: rentalOption === 'delivery' ? address : null,
       };
@@ -156,7 +156,7 @@ export default function CarsScreen() {
         )}
       />
 
-      {showRentalOptions && (
+      {showRentalOptions && expandedCarId && (
         <View style={styles.rentalOptionsContainer}>
           <Text style={styles.sectionTitle}>Rental Options</Text>
           <TouchableOpacity
